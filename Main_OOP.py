@@ -24,7 +24,7 @@ class Root(tk.Tk):
         self.hash_Result = tk.StringVar(self)
         self.PublicKey = None
         self.PrivateKey = None
-        self.Signature_Result = tk.StringVar(self)
+        self.Signature_Result = tk.StringVar(self, value='walo')
 
         # all Entries
 
@@ -40,7 +40,7 @@ class Root(tk.Tk):
         self.Crypto = ttk.Combobox(self, textvariable=self.Encyption_Method, values=('RSA') , state='readonly', justify='center' )
 
         # all labels
-        self.Signature_label = tk.Label(self, text=self.Signature_Result.get(), justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
+        self.Signature_label = tk.Label(self, textvariable=self.Signature_Result, justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
         # grid positions
 
         self.columnconfigure(0,weight=2)
@@ -71,21 +71,26 @@ class Root(tk.Tk):
         self.PublicKey = self.PrivateKey.publickey()
 
         pubKeyPEM = self.PublicKey.exportKey()
-        print(pubKeyPEM.decode('ascii'))
+        # print(pubKeyPEM.decode('ascii'))
 
         privKeyPEM = self.PrivateKey.exportKey()
-        print(privKeyPEM.decode('ascii'))
+        # print(privKeyPEM.decode('ascii'))
 
 
     def Sign_THE_Hash(self):
+        self.RSA_Key_Generation(3072)
+
         hash_fonction= getattr(hashlib ,self.selected_hash.get() )
         self.hash_Result.set(hash_fonction(self.Input_Message.get().encode()).hexdigest())
 
+
         msg = bytes(str(self.hash_Result.get()), encoding='ascii')
         encryptor = PKCS1_OAEP.new(self.PublicKey)
-        print (msg)
         encrypted = encryptor.encrypt(msg)
-        # self.Signature_Result.set(str(binascii.hexlify(encrypted)))
+        cypher_txt = binascii.hexlify(encrypted)
+        self.Signature_Result.set(cypher_txt.decode('ascii'))
+        # self.Signature_label.config(text=self.Signature_Result.get())
+
         # print("Encrypted:", binascii.hexlify(encrypted))
         # msg = b'A message for encryption'
         # encryptor = PKCS1_OAEP.new(pubKey)
