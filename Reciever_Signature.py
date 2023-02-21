@@ -2,10 +2,9 @@ import hashlib
 import tkinter as tk
 from tkinter import ttk
 
-class Root(tk.Tk):
-    # hash_str_1 = ''
-    # hash_str_2 = ''
-    def __init__(self) :
+class Receiver(tk.Toplevel):
+
+    def __init__(self, Message, Cryp_Hash) :
         super().__init__()
         # wondows paramaters
         self.title("signator reciever/ verifier")
@@ -13,8 +12,8 @@ class Root(tk.Tk):
         self.resizable(1,1)
         # variables that i will need
     
-        self.sign_label = tk.StringVar(self)
-        self.msg_label = tk.StringVar(self)
+        self.sign_label = tk.StringVar(self, value=Cryp_Hash)
+        self.msg_label = tk.StringVar(self, value=Message)
    
 
 
@@ -89,7 +88,3 @@ class Root(tk.Tk):
 
 
         
-if __name__ == "__main__":
-    
-    root = Root()
-    root.mainloop()
