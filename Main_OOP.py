@@ -9,8 +9,7 @@ from Crypto import Random
 import binascii
 
 class Receiver(tk.Toplevel):
-    # hash_str_1 = ''
-    # hash_str_2 = ''
+
     def __init__(self) :
         super().__init__()
         # wondows paramaters
@@ -19,10 +18,11 @@ class Receiver(tk.Toplevel):
         self.resizable(1,1)
         # variables that i will need
     
-        self.sign_label = tk.StringVar(self)
-        self.msg_label = tk.StringVar(self)
-   
-
+        self.signature_Sender_Var = tk.StringVar(self)
+        self.message_Sender_Var = tk.StringVar(self)
+        self.result_of_Hashed_message_Var = tk.StringVar(self)
+        self.result_of_decrypted_signature_Var = tk.StringVar(self)
+        
 
         
         # all Button
@@ -45,10 +45,10 @@ class Receiver(tk.Toplevel):
         
 
         # all labels
-        self.message_label  = tk.Label(self, text="the recieved message", justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
-        self.result_message_label = tk.Label(self, text="the hash of the message", justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
-        self.signature_label = tk.Label(self, text="the recieved signature", justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
-        self.result_signature_label = tk.Label(self, text=" the decrypted signature", justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
+        self.message_Sender_label  = tk.Label(self, text="the recieved message",textvariable=self.message_Sender_Var, justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
+        self.result_of_hashed_message_label = tk.Label(self, text="the hash of the message", textvariable=self.result_of_Hashed_message_Var ,justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
+        self.signature_Sender_label = tk.Label(self, text="the recieved signature",textvariable=self.signature_Sender_Var, justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
+        self.result_of_decrypted_signature_label = tk.Label(self, text=" the decrypted signature", textvariable=self.result_of_decrypted_signature_Var , justify='left',bg='#FFFFFF' , width=17  ,underline=17 , wraplength=100 )
         self.validation = tk.Label(self, text="valide message?", justify='center',bg='#FFFFFF', width=20  )
         
         # grid positions
@@ -60,41 +60,42 @@ class Receiver(tk.Toplevel):
         self.rowconfigure(2,weight=3)
         
 
-        self.message_label.grid(column=0,row=0, sticky=tk.W, padx=0, pady=1)
+        self.message_Sender_label.grid(column=0,row=0, sticky=tk.W, padx=0, pady=1)
         self.hash_button.grid(column=0,row=1, sticky=tk.W, padx=0, pady=1)
-        self.result_message_label.grid(column=0,row=2, sticky=tk.W, padx=0, pady=1)
+        self.result_of_hashed_message_label.grid(column=0,row=2, sticky=tk.W, padx=0, pady=1)
 
 
-        self.signature_label.grid(column=1,row=0, sticky=tk.W, padx=0, pady=1)
+        self.signature_Sender_label.grid(column=1,row=0, sticky=tk.W, padx=0, pady=1)
         self.decrypt_button.grid(column=1,row=1, sticky=tk.W, padx=0, pady=1)
-        self.result_signature_label.grid(column=1,row=2, sticky=tk.W, padx=0, pady=1)
+        self.result_of_decrypted_signature_label.grid(column=1,row=2, sticky=tk.W, padx=0, pady=1)
 
         self.valide_button.grid(column=2,row=0, sticky=tk.W, padx=0, pady=1)
         self.validation.grid(column=2,row=1, sticky=tk.W, padx=0, pady=1)
         self.exit_button.grid(column=2,row=2, sticky=tk.W, padx=0, pady=1)
     
     def Set_Signature_Sender(self, Sign:str):
-        self.sign_label.set(Sign)
-        self.signature_label.configure(text=self.sign_label.get()[:100])
+        self.signature_Sender_Var.set(Sign[:100])
+        
+        # self.signature_Sender_label.configure(text=self.signature_Sender_Var.get()[:100])
 
     def Set_Message_Sender(self, Msg):
-        self.msg_label.set(Msg)
-        self.message_label.configure(text=self.msg_label.get())
+        self.message_Sender_Var.set(Msg)
+        self.message_Sender_label.configure(text=self.message_Sender_Var.get())
     
     def hash_string(self): 
-        hash_fonction= getattr(hashlib,self.selected_hash.get() )# transformer le string a une fonction de hashage du bib "hashlib"
-        self.msg_label.set(hash_fonction(self.message_label.get().encode()).hexdigest())
-        self.result_message_label.config(text=self.msg_label.get())
+        selected = root.Get_selected_hash()
+        hash_fonction= getattr(hashlib,selected  )# transformer le string a une fonction de hashage du bib "hashlib"
+        self.result_of_Hashed_message_Var.set(hash_fonction(self.message_Sender_Var.get().encode('ascii')).hexdigest())
       
     def decrypt_string(self): 
-        #hash_fonction= getattr(hashlib,self.selected_hash.get() )# transformer le string a une fonction de hashage du bib "hashlib"
-        #self.sign_label.set(hash_fonction(self.signature_label.get().encode()).hexdigest())
-        decryptor = PKCS1_OAEP.new(Sender.Get_Private_Key())
-        decrypted = decryptor.decrypt(Sender.Get_Signature_result())
+        decryptor = PKCS1_OAEP.new(root.Get_Private_Key())
+        decrypted = decryptor.decrypt(root.Get_Native_encrypted()).decode('ascii')
+        self.result_of_decrypted_signature_Var.set(decrypted)
+        self.result_of_decrypted_signature_label.configure(text=self.result_of_decrypted_signature_Var.get())
 
       
-    def compare_hash(self): # comparer les deux hash
-        if self.result_message_label.get() == self.result_sign_label.get() : 
+    def compare_hash(self):
+        if str(self.result_of_Hashed_message_Var.get()) == str(self.result_of_decrypted_signature_Var.get()) : 
             self.validation.config(text="valide message", fg='#32cd32')
         else : self.validation.config(text="not valide",fg='#ff0000')
  
@@ -110,10 +111,12 @@ class Sender(tk.Tk):
         # variables that I will need 
         self.message = tk.StringVar(self)
         self.selected_hash =tk.StringVar(self, value='md5')
+        self.selected_hash_str = self.selected_hash.get()
         self.Encyption_Method = tk.StringVar(self, value='RSA')
         self.hash_Result = tk.StringVar(self)
         self.PublicKey = None
         self.PrivateKey = None
+        self.Native_encrypted = bytes()
         self.Signature_Result = tk.StringVar(self, value='walo')
 
         # all Entries
@@ -154,9 +157,14 @@ class Sender(tk.Tk):
         self.hash.grid(column=1,row=0, sticky=tk.W, padx=0, pady=1)
         self.Crypto.grid(column=1,row=1, sticky=tk.W, padx=0, pady=1)
         self.Signature_txt.grid(column=1,row=3, sticky=tk.W, padx=0, pady=1)
+    
     def Get_Private_Key(self):
         return self.PrivateKey
 
+    def Get_selected_hash(self):
+        return self.selected_hash_str
+    def Get_Native_encrypted(self):
+        return self.Native_encrypted
     def Send_to_Salma(self):
         # open the window
         Win = Receiver()
@@ -187,8 +195,8 @@ class Sender(tk.Tk):
 
         msg = bytes(str(self.hash_Result.get()), encoding='ascii')
         encryptor = PKCS1_OAEP.new(self.PublicKey)
-        native_encrypted = encryptor.encrypt(msg)
-        cypher_txt = binascii.hexlify(native_encrypted).decode('ascii')
+        self.Native_encrypted = encryptor.encrypt(msg)
+        cypher_txt = binascii.hexlify(self.Native_encrypted).decode('ascii')
         self.Signature_Result.set(cypher_txt)
         self.Signature_txt['state']= 'normal'
         self.Signature_txt.insert('1.0',cypher_txt)
